@@ -5,7 +5,7 @@ namespace WeatherApp.Data.Services;
 public class ConvertService : IConvertService
 {
 
-    public byte[] ConvertDictionaryToTType(Dictionary<string, double> temperaturesData, Dictionary<string, double> averageTemperatureData, bool fahrenheit, string fileType)
+    public byte[] ConvertDictionaryToGivenType(Dictionary<string, double> temperaturesData, Dictionary<string, double> averageTemperatureData, bool fahrenheit, string fileType)
     {
         IConverter converter;
         switch (fileType)

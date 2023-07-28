@@ -21,13 +21,8 @@ public class WeatherService : IWeatherService
         
         try
         {
-            var response = _httpClient.GetAsync(apiUrl).Result;
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            var jsonData = JsonConvert.DeserializeObject<dynamic>(content);
-            var averageTemperatures = new Dictionary<string, double>();
+            var jsonData = DeserializeJsonData(apiUrl).Result;
+            Dictionary<string, double> averageTemperatures = new Dictionary<string, double>();
 
             for (int i = 0; i < jsonData.daily.time.Count; i++)
             {
@@ -54,14 +49,9 @@ public class WeatherService : IWeatherService
         var apiUrl = CreateHourlyTemperaturesApiUrl(latitude, longitude, fahrenheit);
         try
         {
-            var response =  _httpClient.GetAsync(apiUrl).Result;
-            response.EnsureSuccessStatusCode();
-        
-            var content = await response.Content.ReadAsStringAsync();
-
-            var jsonData = JsonConvert.DeserializeObject<dynamic>(content);
-
+            var jsonData = DeserializeJsonData(apiUrl).Result;
             Dictionary<string, double> hourlyTemperatures = new Dictionary<string, double>();
+
             for (int i = 0; i < jsonData.hourly.time.Count; i++)
             {
                 string date = jsonData.hourly.time[i];
@@ -79,15 +69,28 @@ public class WeatherService : IWeatherService
         }            
     }
 
+
     private string CreateHourlyTemperaturesApiUrl(string latitude, string longitude, bool fahrenheit)
     {
         string apiUrl = String.Format(apiUrlHourlyPattern, latitude, longitude);
         return !fahrenheit ? apiUrl : apiUrl += temperatureUnitFahrenheitParam;
     }
     
+
     private string CreateDailyTemperaturesApiUrl(string latitude, string longitude, bool fahrenheit)
     {
         string apiUrl = String.Format(apiUrlDailyPattern, latitude, longitude);
         return !fahrenheit ? apiUrl : apiUrl += temperatureUnitFahrenheitParam;
+    }
+
+
+    private async Task<dynamic> DeserializeJsonData(string apiUrl)
+    {
+        var response = _httpClient.GetAsync(apiUrl).Result;
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<dynamic>(content);
     }
 }

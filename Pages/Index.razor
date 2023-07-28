@@ -60,6 +60,7 @@
     bool display;
     bool fahrenheit = false;
 
+
     public void Search(EditContext context)
     {
         weatherData = _weatherService.GetHourlyTemperatureData(coordinates.Latitude, coordinates.Longitude, fahrenheit).Result;
@@ -67,9 +68,10 @@
         display = true;
     }    
 
+
     private async Task DownloadFile(string fileType)
     {
-        byte[] fileData = _convertService.ConvertDictionaryToTType(weatherData, averageTemperatures, fahrenheit, fileType);
+        byte[] fileData = _convertService.ConvertDictionaryToGivenType(weatherData, averageTemperatures, fahrenheit, fileType);
 
         await jsRuntime.InvokeVoidAsync("saveAsFile", $"{fileName}.{fileType}" , Convert.ToBase64String(fileData));
     }

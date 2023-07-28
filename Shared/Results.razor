@@ -1,0 +1,78 @@
+﻿@using WeatherApp.Data.Interfaces
+@inject IWeatherService _weatherService
+
+@if (!fahrenheit)
+{
+    <MudDataGrid Virtualize="true" Height="50vh" Items="@weatherData">
+        <Columns>
+            <PropertyColumn Property="x => x.Key" Title="Date" />
+            <PropertyColumn Property="x => x.Value" Title="Temperature ℃" />
+        </Columns>
+    </MudDataGrid>
+
+    <ApexChart TItem="ChartItem" Title="Average Temperatures ℃">
+        <ApexPointSeries TItem="ChartItem"
+                     Items="@(averageTemperatures.Select(kv => new ChartItem { X = kv.Key, Y = (decimal)kv.Value }).ToList())"
+                     Name="Average Temperatures ℃"
+                     SeriesType="SeriesType.Line"
+                     XValue="@(e => e.X)"
+                     YValue="(e) => e.Y" />
+    </ApexChart>
+} else
+{
+    <MudDataGrid Virtualize="true" Height="50vh" Items="@weatherData">
+        <Columns>
+            <PropertyColumn Property="x => x.Key" Title="Date" />
+            <PropertyColumn Property="x => x.Value" Title="Temperature ℉" />
+        </Columns>
+    </MudDataGrid>
+
+    <ApexChart TItem="ChartItem" Title="Average Temperatures ℉">
+        <ApexPointSeries TItem="ChartItem"
+                     Items="@(averageTemperatures.Select(kv => new ChartItem { X = kv.Key, Y = (decimal)kv.Value }).ToList())"
+                     Name="Average Temperatures ℉"
+                     SeriesType="SeriesType.Line"
+                     XValue="@(e => e.X)"
+                     YValue="(e) => e.Y" />
+    </ApexChart>
+}
+
+
+@code {
+    [Parameter]
+    public Dictionary<string, double> weatherData { get; set; }
+    [Parameter]
+    public Dictionary<string, double> averageTemperatures { get; set; }
+    [Parameter]
+    public bool fahrenheit { get; set; }
+
+    private bool firstRender = true;
+
+    private class ChartItem
+    {
+        public string X { get; set; }
+        public decimal Y { get; set; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+    public void Attach(RenderHandle renderHandle)
+    {
+        firstRender = true;
+    }
+
+    public Task SetParametersAsync(ParameterView parameters)
+    {
+        firstRender = false;
+        return Task.CompletedTask;
+    }
+}
+
+

@@ -1,0 +1,77 @@
+@page "/"
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@using System.Text
+@using WeatherApp.Data
+@using WeatherApp.Data.Interfaces
+@using WeatherApp.Data.Models
+@inject IJSRuntime jsRuntime
+@inject IWeatherService _weatherService
+@inject IConvertService _convertService
+
+    <MudGrid Style="margin-top:3vh">
+        <MudItem xs="4">
+            <EditForm Model="@coordinates" OnValidSubmit="Search">
+                <DataAnnotationsValidator />
+                <MudCard>
+                    <MudCardContent>
+                        <MudTextField Label="Latitude" HelperText="Decimal number beetwen -90 and 90" @bind-Value="coordinates.Latitude" For="@(() => coordinates.Latitude)" />
+                        <MudTextField Label="Longitude" HelperText="Decimal number beetwen -180 and 180" @bind-Value="coordinates.Longitude" For="@(() => coordinates.Longitude)" />
+                    </MudCardContent>
+                    <MudCardActions>
+                    <MudSwitch @bind-Checked="@fahrenheit" Color="MudBlazor.Color.Primary">&deg;C / &deg;F</MudSwitch>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="MudBlazor.Color.Primary" Class="ml-auto">Search</MudButton>
+                        @if(display)
+                        {
+                        <MudMenu Style="margin-left:2px" Label="Download as..." Variant="Variant.Filled" Color="MudBlazor.Color.Primary" FullWidth="true">
+                            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="MudBlazor.Color.Primary" OnClick='() => DownloadFile("xlsx")' Class="ml-auto">Download as XLSX</MudButton>
+                            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="MudBlazor.Color.Primary" OnClick='() => DownloadFile("csv")' Class="ml-auto">Download as CSV</MudButton>
+                            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Text" Color="MudBlazor.Color.Primary" OnClick='() => DownloadFile("txt")' Class="ml-auto">Download as TXT</MudButton>
+                        </MudMenu>
+                        } else
+                        {
+                        <MudMenu Style="margin-left:2px" Label="Download as..." Variant="Variant.Filled" Color="MudBlazor.Color.Primary" FullWidth="true">
+                            <MudButton Disabled ButtonType="ButtonType.Button" Variant="Variant.Text" Color="MudBlazor.Color.Primary" Class="ml-auto">Download as XLSX</MudButton>
+                            <MudButton Disabled ButtonType="ButtonType.Button" Variant="Variant.Text" Color="MudBlazor.Color.Primary" Class="ml-auto">Download as CSV</MudButton>
+                            <MudButton Disabled ButtonType="ButtonType.Button" Variant="Variant.Text" Color="MudBlazor.Color.Primary" Class="ml-auto">Download as TXT</MudButton>
+                        </MudMenu>                            
+                        }
+                    </MudCardActions>
+                </MudCard>
+            </EditForm>
+        </MudItem>
+        <MudItem xs="8">
+            <MudPaper Class="pa-4 mud-height-full">
+                @if(display == true)
+                {
+                    <Results fahrenheit="fahrenheit" weatherData="weatherData" averageTemperatures="averageTemperatures" @ref="results" />
+                }            
+        </MudPaper>
+        </MudItem>    
+</MudGrid>
+
+@code {
+
+    Coordinates coordinates = new Coordinates();
+    Dictionary<string, double> weatherData = new Dictionary<string, double>();
+    Dictionary<string, double> averageTemperatures = new Dictionary<string, double>();
+    protected Results results;
+    string fileName = "results";
+    bool display;
+    bool fahrenheit = false;
+
+    public void Search(EditContext context)
+    {
+        weatherData = _weatherService.GetHourlyTemperatureData(coordinates.Latitude, coordinates.Longitude, fahrenheit).Result;
+        averageTemperatures = _weatherService.CalculateDailyAverage(coordinates.Latitude, coordinates.Longitude, fahrenheit).Result;
+        display = true;
+    }    
+
+    private async Task DownloadFile(string fileType)
+    {
+        byte[] fileData = _convertService.ConvertDictionaryToTType(weatherData, averageTemperatures, fahrenheit, fileType);
+
+        await jsRuntime.InvokeVoidAsync("saveAsFile", $"{fileName}.{fileType}" , Convert.ToBase64String(fileData));
+    }
+
+}

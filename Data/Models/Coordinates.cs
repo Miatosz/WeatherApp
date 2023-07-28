@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WeatherApp.Data;
+namespace WeatherApp.Data.Models;
 
 public class Coordinates
 {

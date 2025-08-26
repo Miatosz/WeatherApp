@@ -25,6 +25,11 @@ This project demonstrates API integration with an external weather service and s
 
 ---
 
+## 🚀 CI/CD
+This project includes a GitHub Actions workflow that automatically builds the project and runs tests on each push or pull request.
+
+---
+
 ## ▶️ Setup
 ```bash
 git clone https://github.com/Miatosz/WeatherApp.git
